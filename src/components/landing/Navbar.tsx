@@ -1,144 +1,174 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { useState } from 'react';
-import { Menu, X } from 'lucide-react';
-
-const navLinks = [
-  { label: 'Fitur', href: '#fitur' },
-  { label: 'Teknologi', href: '#teknologi' },
-  { label: 'Instalasi', href: '#install' },
-  { label: 'Cara Kerja', href: '#cara-kerja' },
-  { label: 'Kompatibilitas', href: '#kompatibilitas' },
-  { label: 'FAQ', href: '#faq' },
-  { label: 'Tentang', href: '#tentang' },
-];
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Menu, X, Github } from "lucide-react";
+import { NAV_LINKS, SITE } from "@/lib/site";
+import { LogoLock } from "./Logo";
 
 export default function Navbar() {
-  const [isOpen, setIsOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState<string>("");
+  const progressRef = useRef<HTMLDivElement>(null);
+  const frame = useRef(0);
 
-  const handleNavClick = (href: string) => {
-    setIsOpen(false);
-    setTimeout(() => {
-      if (href === '#') {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        return;
-      }
-      const el = document.querySelector(href);
-      if (el) {
-        const navHeight = 80;
-        const top = el.getBoundingClientRect().top + window.scrollY - navHeight;
-        window.scrollTo({ top, behavior: 'smooth' });
-      }
-    }, isOpen ? 150 : 0);
-  };
+  /* Indikator progres baca — dimutasi langsung tanpa memicu render ulang */
+  useEffect(() => {
+    const onScroll = () => {
+      if (frame.current) return;
+      frame.current = requestAnimationFrame(() => {
+        frame.current = 0;
+        const doc = document.documentElement;
+        const max = doc.scrollHeight - window.innerHeight;
+        const ratio = max > 0 ? Math.min(1, Math.max(0, window.scrollY / max)) : 0;
+        if (progressRef.current) {
+          progressRef.current.style.transform = `scaleX(${ratio})`;
+        }
+        setScrolled(window.scrollY > 12);
+      });
+    };
+
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (frame.current) cancelAnimationFrame(frame.current);
+    };
+  }, []);
+
+  /* Sorot menu sesuai bagian yang sedang dilihat */
+  useEffect(() => {
+    const sections = NAV_LINKS.map((link) =>
+      document.querySelector<HTMLElement>(link.href),
+    ).filter((el): el is HTMLElement => Boolean(el));
+
+    if (!sections.length || !("IntersectionObserver" in window)) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0];
+        if (visible) setActive(`#${visible.target.id}`);
+      },
+      { rootMargin: "-45% 0px -50% 0px", threshold: [0, 0.25, 0.5, 1] },
+    );
+
+    sections.forEach((section) => observer.observe(section));
+    return () => observer.disconnect();
+  }, []);
+
+  /* Kunci scroll saat menu mobile terbuka */
+  useEffect(() => {
+    document.body.style.overflow = open ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [open]);
+
+  const close = useCallback(() => setOpen(false), []);
 
   return (
-    <motion.header
-      className="fixed top-0 left-0 right-0 z-50"
-      initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-    >
-      <div className="mx-4 sm:mx-6 mt-4">
-        {/* Nav bar — NO overflow:hidden */}
-        <nav
-          className="px-4 sm:px-6 py-3 flex items-center justify-between"
-          style={{
-            background: 'rgba(10, 10, 15, 0.8)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-            borderRadius: '16px',
-          }}
-        >
-          {/* Logo */}
-          <a
-            href="#"
-            onClick={(e) => {
-              e.preventDefault();
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className="flex items-center gap-2.5 cursor-pointer relative z-10"
-          >
-            <img
-              src="/logo.png"
-              alt="ArkanProjects"
-              className="w-7 h-7 rounded-md"
-            />
-            <span className="font-bold text-base neon-gradient-text">ArkanProjects</span>
+    <header className="fixed inset-x-0 top-0 z-50">
+      {/* Garis progres halaman */}
+      <div className="absolute inset-x-0 top-0 h-px bg-white/5">
+        <div
+          ref={progressRef}
+          className="h-full origin-left scale-x-0 bg-gradient-to-r from-cyan-brand via-emerald-brand to-violet-brand"
+        />
+      </div>
+
+      <div
+        className={`transition-all duration-300 ${
+          scrolled ? "glass border-b border-white/[0.06] shadow-[0_18px_40px_-32px_rgba(0,0,0,0.9)]" : ""
+        }`}
+      >
+        <nav className="shell flex h-16 items-center justify-between gap-4" aria-label="Navigasi utama">
+          <a href="#atas" className="shrink-0" aria-label="ArkanProjects — kembali ke atas">
+            <LogoLock />
           </a>
 
-          {/* Desktop nav */}
-          <div className="hidden lg:flex items-center gap-0.5">
-            {navLinks.map((link) => (
-              <button
-                key={link.href}
-                onClick={() => handleNavClick(link.href)}
-                className="px-2.5 py-1.5 text-[13px] text-[#8888aa] hover:text-[#00ffff] transition-colors rounded-lg hover:bg-white/[0.03] cursor-pointer"
-              >
-                {link.label}
-              </button>
+          <ul className="hidden items-center gap-0.5 lg:flex">
+            {NAV_LINKS.map((link) => (
+              <li key={link.href}>
+                <a
+                  href={link.href}
+                  className={`rounded-full px-3 py-2 text-[13px] transition-colors ${
+                    active === link.href
+                      ? "bg-white/[0.06] text-cyan-brand"
+                      : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-100"
+                  }`}
+                >
+                  {link.label}
+                </a>
+              </li>
             ))}
-          </div>
+          </ul>
 
-          {/* Desktop CTA */}
-          <div className="hidden lg:flex items-center gap-3">
+          <div className="hidden items-center gap-2 lg:flex">
             <a
-              href="https://arkanprojects.vercel.app/installer/pterodactyl.sh"
+              href={SITE.github}
               target="_blank"
               rel="noopener noreferrer"
-              className="neon-button px-4 py-2 text-sm font-semibold cursor-pointer"
+              className="btn btn-ghost !px-3"
+              aria-label="Repositori GitHub ArkanProjects"
             >
-              <span>Mulai Instalasi</span>
+              <Github className="h-4 w-4" />
+              <span>GitHub</span>
+            </a>
+            <a href="#instalasi" className="btn btn-primary">
+              Instal Sekarang
             </a>
           </div>
 
-          {/* Mobile menu button */}
           <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="lg:hidden p-2 text-[#8888aa] hover:text-white transition-colors cursor-pointer relative z-10"
+            type="button"
+            onClick={() => setOpen((value) => !value)}
+            className="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 text-slate-300 transition-colors hover:text-white lg:hidden"
+            aria-expanded={open}
+            aria-controls="menu-mobile"
+            aria-label={open ? "Tutup menu" : "Buka menu"}
           >
-            {isOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>
         </nav>
-
-        {/* Mobile menu — separate from nav, NO AnimatePresence */}
-        {isOpen && (
-          <div
-            className="lg:hidden mt-2 p-4 max-h-[70vh] overflow-y-auto"
-            style={{
-              background: 'rgba(10, 10, 15, 0.95)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              border: '1px solid rgba(255, 255, 255, 0.06)',
-              borderRadius: '16px',
-            }}
-          >
-            <div className="flex flex-col gap-1">
-              {navLinks.map((link) => (
-                <button
-                  key={link.href}
-                  onClick={() => handleNavClick(link.href)}
-                  className="px-3 py-2.5 text-sm text-[#8888aa] hover:text-[#00ffff] transition-colors rounded-lg hover:bg-white/[0.03] text-left cursor-pointer"
-                >
-                  {link.label}
-                </button>
-              ))}
-              <div className="mt-2 pt-2 border-t border-white/5">
-                <a
-                  href="https://arkanprojects.vercel.app/installer/pterodactyl.sh"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="neon-button px-4 py-2.5 text-sm font-semibold cursor-pointer block text-center"
-                >
-                  <span>Mulai Instalasi</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        )}
       </div>
-    </motion.header>
+
+      {/* Menu mobile */}
+      <div
+        id="menu-mobile"
+        className={`glass overflow-hidden border-b border-white/[0.06] transition-[max-height,opacity] duration-300 lg:hidden ${
+          open ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0"
+        }`}
+      >
+        <div className="shell flex flex-col gap-1 py-4">
+          {NAV_LINKS.map((link) => (
+            <a
+              key={link.href}
+              href={link.href}
+              onClick={close}
+              className="rounded-xl px-3 py-3 text-sm text-slate-300 transition-colors hover:bg-white/[0.04] hover:text-white"
+            >
+              {link.label}
+            </a>
+          ))}
+          <div className="mt-2 grid grid-cols-2 gap-2 border-t border-white/[0.06] pt-4">
+            <a
+              href={SITE.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn-ghost"
+              onClick={close}
+            >
+              <Github className="h-4 w-4" />
+              GitHub
+            </a>
+            <a href="#instalasi" className="btn btn-primary" onClick={close}>
+              Instal Sekarang
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
   );
 }
