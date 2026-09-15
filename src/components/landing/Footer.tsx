@@ -1,133 +1,83 @@
-'use client';
+import { Github, BookOpen, MessageSquare, Terminal, Heart } from "lucide-react";
+import { INSTALL_COMMAND, NAV_LINKS, SITE } from "@/lib/site";
+import { LogoLock } from "./Logo";
+import CopyButton from "./CopyButton";
 
-import { motion } from 'framer-motion';
-import { Github, Heart, BookOpen, MessageSquare, Terminal, ExternalLink } from 'lucide-react';
-
-const footerLinks = [
-  {
-    label: 'GitHub',
-    href: 'https://github.com/PixZ19/ArkanProjects',
-    icon: Github,
-  },
-  {
-    label: 'Dokumentasi Pterodactyl',
-    href: 'https://pterodactyl.io',
-    icon: BookOpen,
-  },
-  {
-    label: 'Komunitas Discord',
-    href: 'https://pterodactyl.io/discord.html',
-    icon: MessageSquare,
-  },
-  {
-    label: 'Script Installer',
-    href: 'https://arkanprojects.vercel.app/installer/pterodactyl.sh',
-    icon: Terminal,
-  },
+const LINKS = [
+  { label: "Repositori", href: SITE.github, icon: Github },
+  { label: "Dokumentasi Pterodactyl", href: "https://pterodactyl.io", icon: BookOpen },
+  { label: "Komunitas Discord", href: "https://pterodactyl.io/discord.html", icon: MessageSquare },
+  { label: "Script installer", href: SITE.installer, icon: Terminal },
 ];
 
 export default function Footer() {
   return (
-    <footer className="relative py-16 px-4 sm:px-6 overflow-hidden">
-      {/* Animated top border */}
-      <div className="footer-animated-border absolute top-0 left-0 right-0" />
-
-      {/* Background glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[400px] h-[200px] bg-gradient-to-t from-[#00ffff]/[0.02] to-transparent pointer-events-none blur-2xl" />
-      <div className="grid-bg-fine" />
-
-      {/* Geometric accents */}
-      <div className="absolute bottom-10 left-[10%] pointer-events-none hidden xl:block">
-        <div className="geo-cross opacity-15" />
-      </div>
-      <div className="absolute bottom-16 right-[12%] pointer-events-none hidden xl:block">
-        <div className="geo-ring opacity-10" style={{ width: '50px', height: '50px' }} />
-      </div>
-
-      <div className="max-w-6xl mx-auto relative">
-        {/* Links row */}
-        <motion.div
-          className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-10"
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          {footerLinks.map((link, index) => (
-            <a
-              key={link.label}
-              href={link.href}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm text-[#8888aa] hover:text-[#00ffff] transition-colors px-3 py-2 rounded-lg hover:bg-white/[0.03]"
-              data-aos="fade-up"
-              data-aos-delay={`${index * 80}`}
-            >
-              <link.icon className="w-4 h-4" />
-              <span>{link.label}</span>
-              <ExternalLink className="w-3 h-3 opacity-0 group-hover:opacity-100" />
-            </a>
-          ))}
-        </motion.div>
-
-        {/* Branding & bottom */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-          {/* Branding */}
-          <motion.div
-            className="flex flex-col items-center sm:items-start gap-2"
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5 }}
-            data-aos="fade-right" data-aos-delay="200"
-          >
-            <div className="flex items-center gap-2">
-              <div className="relative">
-                <img
-                  src="/logo.png"
-                  alt="ArkanProjects"
-                  className="w-7 h-7 rounded-md"
-                />
-                <div className="absolute -inset-1 rounded-md border border-cyan-500/10 opacity-50" />
-              </div>
-              <span className="neon-gradient-text font-bold text-lg">
-                ArkanProjects
-              </span>
-            </div>
-            <p className="text-xs text-[#8888aa] text-center sm:text-left max-w-xs">
-              Dibangun dengan dedikasi untuk komunitas game server hosting.
+    <footer className="relative overflow-hidden border-t border-white/[0.06] pb-10 pt-16">
+      <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-cyan-brand/40 to-transparent" />
+      <div className="shell">
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr_1fr]">
+          <div>
+            <LogoLock />
+            <p className="mt-4 max-w-sm text-[13.5px] leading-relaxed text-slate-400">
+              Installer Pterodactyl Panel &amp; Wings untuk Ubuntu, Debian, Rocky Linux, dan
+              AlmaLinux. Terbuka, dapat diaudit, dan gratis dipakai.
             </p>
-          </motion.div>
 
-          {/* GitHub badge */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.5, delay: 0.1 }}
-            data-aos="fade-left" data-aos-delay="300"
-          >
-            <a
-              href="https://github.com/PixZ19/ArkanProjects"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="glass-card-alt px-4 py-2.5 flex items-center gap-2 hover:bg-white/[0.04] transition-all cursor-pointer"
-            >
-              <Github className="w-4 h-4 text-[#8888aa]" />
-              <span className="text-sm text-[#8888aa]">PixZ19/ArkanProjects</span>
-            </a>
-          </motion.div>
+            <div className="mt-5 flex max-w-sm items-center gap-2 rounded-xl border border-white/[0.07] bg-white/[0.03] px-3 py-2">
+              <code className="min-w-0 flex-1 truncate font-mono text-[12px] text-slate-300">
+                {INSTALL_COMMAND}
+              </code>
+              <CopyButton value={INSTALL_COMMAND} />
+            </div>
+          </div>
+
+          <nav aria-label="Tautan bagian">
+            <h3 className="text-[11px] uppercase tracking-[0.14em] text-slate-500">Bagian</h3>
+            <ul className="mt-4 space-y-2.5">
+              {NAV_LINKS.map((link) => (
+                <li key={link.href}>
+                  <a
+                    href={link.href}
+                    className="text-[13.5px] text-slate-400 transition-colors hover:text-cyan-brand"
+                  >
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          <div>
+            <h3 className="text-[11px] uppercase tracking-[0.14em] text-slate-500">Tautan</h3>
+            <ul className="mt-4 space-y-2.5">
+              {LINKS.map((link) => (
+                <li key={link.label}>
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-[13.5px] text-slate-400 transition-colors hover:text-cyan-brand"
+                  >
+                    <link.icon className="h-3.5 w-3.5" />
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-8 pt-6 border-t border-white/[0.04] flex flex-col sm:flex-row items-center justify-between gap-3"
-          data-aos="fade-up" data-aos-delay="400"
-        >
-          <p className="text-xs text-[#555566]">
-            &copy; {new Date().getFullYear()} ArkanProjects. Hak cipta dilindungi.
+        <div className="mt-12 flex flex-col gap-4 border-t border-white/[0.05] pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-[12px] text-slate-500">
+            © {new Date().getFullYear()} {SITE.name} · Lisensi {SITE.license} · Installer v
+            {SITE.installerVersion}
           </p>
-          <p className="text-xs text-[#444455] flex items-center gap-1">
-            Dibuat dengan <Heart className="w-3 h-3 text-[#ff0088]/40 inline" /> oleh komunitas
+          <p className="flex flex-wrap items-center gap-2 text-[12px] text-slate-600">
+            <span className="inline-flex items-center gap-1">
+              Dibuat dengan <Heart className="h-3 w-3 text-pink-brand/60" /> oleh komunitas
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>Tidak berafiliasi resmi dengan Pterodactyl</span>
           </p>
         </div>
       </div>

@@ -1,213 +1,126 @@
-'use client';
+"use client";
 
-import { motion } from 'framer-motion';
-import { useState, useEffect, useRef } from 'react';
-import { Copy, Check, AlertCircle, Server, Globe, MemoryStick, Shield } from 'lucide-react';
+import { useState } from "react";
+import { AlertCircle, ShieldCheck, Server, HardDrive, Globe } from "lucide-react";
+import { INSTALL_MODES, REQUIREMENTS } from "@/lib/site";
+import CopyButton from "./CopyButton";
+import SectionHeader from "./SectionHeader";
 
-const commandText = 'bash <(curl -s https://arkanprojects.vercel.app/installer/pterodactyl.sh)';
-
-function TypingCommand() {
-  const [displayedText, setDisplayedText] = useState('');
-  const [showCursor, setShowCursor] = useState(true);
-  const hasTyped = useRef(false);
-
-  useEffect(() => {
-    if (hasTyped.current) return;
-    hasTyped.current = true;
-    let i = 0;
-    const timer = setInterval(() => {
-      if (i < commandText.length) {
-        setDisplayedText(commandText.slice(0, i + 1));
-        i++;
-      } else {
-        clearInterval(timer);
-        setTimeout(() => setShowCursor(false), 1500);
-      }
-    }, 25);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <span className="font-mono">
-      <span className="text-[#8888aa]">$</span>{' '}
-      <span className="text-white/80">{displayedText}</span>
-      {showCursor && <span className="typing-cursor" />}
-    </span>
-  );
-}
+const REQ_ICONS = [Server, HardDrive, HardDrive, ShieldCheck];
 
 export default function InstallGuide() {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(commandText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      const textArea = document.createElement('textarea');
-      textArea.value = commandText;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const requirements = [
-    { icon: Shield, text: 'Akses root (sudo)' },
-    { icon: Server, text: 'OS yang didukung (Ubuntu/Debian/Rocky/AlmaLinux)' },
-    { icon: Globe, text: 'curl terinstal' },
-    { icon: MemoryStick, text: 'RAM 2GB+ untuk Panel' },
-    { icon: Globe, text: 'Domain/FQDN mengarah ke IP server (untuk SSL)' },
-  ];
-
-  const supportedOS = ['Ubuntu', 'Debian', 'Rocky Linux', 'AlmaLinux'];
+  const [activeId, setActiveId] = useState(INSTALL_MODES[0].id);
+  const active = INSTALL_MODES.find((mode) => mode.id === activeId) ?? INSTALL_MODES[0];
 
   return (
-    <section id="install" className="relative py-24 sm:py-32 px-4 sm:px-6 overflow-hidden">
-      {/* Background effects */}
-      <div className="section-glow-purple top-0 right-0" />
-      <div className="section-glow-cyan bottom-0 left-0" />
-      <div className="grid-bg" />
+    <section id="instalasi" className="section">
+      <div className="shell">
+        <SectionHeader
+          eyebrow="Instalasi"
+          title={
+            <>
+              Jalankan di server, <span className="gradient-text">sisanya otomatis</span>
+            </>
+          }
+          lead="Pilih mode yang sesuai. Semua mode memakai script yang sama — hanya berbeda pada seberapa banyak yang dikirim lewat flag."
+        />
 
-      {/* Geometric shapes */}
-      <div className="absolute top-10 left-[15%] pointer-events-none hidden xl:block">
-        <div className="geo-ring opacity-30" style={{ width: '50px', height: '50px' }} />
-      </div>
-      <div className="absolute bottom-10 right-[20%] pointer-events-none hidden xl:block">
-        <div className="geo-triangle opacity-40" />
-      </div>
-      <div className="absolute top-1/2 right-[5%] pointer-events-none hidden xl:block">
-        <div className="geo-plus opacity-20" />
-      </div>
+        <div className="mt-14 grid gap-6 lg:grid-cols-[1.35fr_1fr]">
+          {/* Panel perintah */}
+          <div className="card overflow-hidden" data-reveal>
+            <div role="tablist" aria-label="Mode instalasi" className="flex flex-wrap gap-1 border-b border-white/[0.06] p-2">
+              {INSTALL_MODES.map((mode) => {
+                const selected = mode.id === activeId;
+                return (
+                  <button
+                    key={mode.id}
+                    role="tab"
+                    type="button"
+                    aria-selected={selected}
+                    onClick={() => setActiveId(mode.id)}
+                    className={`rounded-xl px-3.5 py-2 text-[13px] font-medium transition-colors ${
+                      selected
+                        ? "bg-white/[0.07] text-white"
+                        : "text-slate-400 hover:bg-white/[0.04] hover:text-slate-200"
+                    }`}
+                  >
+                    {mode.label}
+                  </button>
+                );
+              })}
+            </div>
 
-      <div className="max-w-4xl mx-auto relative">
-        {/* Section title */}
-        <motion.div
-          className="text-center mb-12"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6 }}
-        >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-white/5 bg-white/[0.02] mb-4"
-            data-aos="fade-down" data-aos-delay="100"
-          >
-            <div className="glow-dot" style={{ color: '#8800ff', width: '4px', height: '4px' }} />
-            <span className="text-xs text-[#8888aa]">QUICK START</span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4"
-            data-aos="fade-up" data-aos-delay="150"
-          >
-            <span className="neon-gradient-text">Cara Instalasi</span>
-          </h2>
-          <p className="text-[#8888aa] text-lg"
-            data-aos="fade-up" data-aos-delay="200"
-          >
-            Jalankan satu perintah, sisanya dikerjakan script
-          </p>
-        </motion.div>
-
-        {/* Supported OS badges */}
-        <motion.div
-          className="flex flex-wrap items-center justify-center gap-2 mb-8"
-          initial={{ opacity: 0, y: 10 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.1 }}
-          data-aos="fade-up" data-aos-delay="250"
-        >
-          <span className="text-xs text-[#8888aa]/60 mr-1">Didukung:</span>
-          {supportedOS.map((os) => (
-            <span key={os} className="os-badge text-[#8888aa]">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#00ff88] pulse-online" />
-              {os}
-            </span>
-          ))}
-        </motion.div>
-
-        {/* Code block with glow */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-12"
-          data-aos="zoom-in" data-aos-delay="300"
-        >
-          <div className="relative">
-            {/* Glow behind code block */}
-            <div className="absolute -inset-4 bg-gradient-to-r from-[#00ffff]/5 via-[#8800ff]/5 to-[#00ff88]/5 blur-2xl rounded-2xl" />
-
-            <div className="code-block p-1 relative border-glow">
-              {/* Code block header */}
-              <div className="flex items-center justify-between px-4 py-2.5 border-b border-white/5">
-                <div className="flex items-center gap-2">
-                  <div className="flex gap-1.5">
-                    <div className="w-3 h-3 rounded-full bg-[#ff5f57]/80" />
-                    <div className="w-3 h-3 rounded-full bg-[#febc2e]/80" />
-                    <div className="w-3 h-3 rounded-full bg-[#28c840]/80" />
-                  </div>
-                  <span className="text-xs text-[#8888aa] ml-2 font-mono">terminal</span>
+            <div className="p-4 sm:p-5">
+              <div className="rounded-xl border border-white/[0.07] bg-ink-950/70 p-4">
+                <div className="flex items-start gap-3">
+                  <pre className="min-w-0 flex-1 overflow-x-auto whitespace-pre-wrap break-all font-mono text-[12.5px] leading-relaxed text-slate-200 sm:text-[13px]">
+                    {active.command}
+                  </pre>
+                  <CopyButton value={active.command} label="Salin" />
                 </div>
-                <button
-                  onClick={handleCopy}
-                  className="flex items-center gap-1.5 text-xs text-[#8888aa] hover:text-[#00ffff] transition-colors cursor-pointer px-2 py-1 rounded-md hover:bg-white/5"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="w-3.5 h-3.5 text-[#00ff88]" />
-                      <span className="text-[#00ff88]">Tersalin!</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Salin</span>
-                    </>
-                  )}
-                </button>
               </div>
-              {/* Code content with typing effect */}
-              <div className="p-4 sm:p-5 overflow-x-auto">
-                <code className="text-sm sm:text-base font-mono whitespace-nowrap">
-                  <TypingCommand />
-                </code>
+
+              <p className="mt-3 text-[13px] leading-relaxed text-slate-400">{active.note}</p>
+            </div>
+
+            {/* Flag ringkas */}
+            <div className="border-t border-white/[0.06] p-4 sm:p-5">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Flag utama</p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {["--panel", "--wings", "--both", "--fqdn", "--email", "--ssl", "--firewall", "--dbhost", "--yes", "--dry-run"].map(
+                  (flag) => (
+                    <code
+                      key={flag}
+                      className="rounded-lg border border-white/[0.07] bg-white/[0.03] px-2 py-1 font-mono text-[11.5px] text-cyan-brand"
+                    >
+                      {flag}
+                    </code>
+                  ),
+                )}
               </div>
             </div>
           </div>
-        </motion.div>
 
-        {/* Requirements */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-        >
-          <div className="flex items-center gap-2 mb-5"
-            data-aos="fade-right" data-aos-delay="350"
-          >
-            <AlertCircle className="w-5 h-5 text-[#ff0088]" />
-            <h3 className="text-lg font-semibold text-white/90">Persyaratan</h3>
+          {/* Persyaratan */}
+          <div className="flex flex-col gap-4">
+            <div className="card p-6" data-reveal style={{ ["--reveal-delay" as string]: "80ms" }}>
+              <div className="flex items-center gap-2 text-slate-200">
+                <AlertCircle className="h-4 w-4 text-pink-brand" />
+                <h3 className="text-sm font-semibold uppercase tracking-[0.12em]">Sebelum mulai</h3>
+              </div>
+
+              <ul className="mt-5 space-y-3">
+                {[
+                  { icon: ShieldCheck, text: "Akses root atau sudo di server" },
+                  { icon: Server, text: "VPS berbasis KVM (OpenVZ tidak mendukung Docker)" },
+                  { icon: Globe, text: "Domain mengarah ke IP server bila ingin SSL otomatis" },
+                  { icon: HardDrive, text: "curl terpasang — installer memasangnya bila belum ada" },
+                ].map((item) => (
+                  <li key={item.text} className="flex items-start gap-3 text-[13px] text-slate-400">
+                    <item.icon className="mt-0.5 h-4 w-4 shrink-0 text-cyan-brand/70" />
+                    <span>{item.text}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-white/[0.07] bg-white/[0.02]" data-reveal style={{ ["--reveal-delay" as string]: "160ms" }}>
+              {REQUIREMENTS.map((req, index) => {
+                const IconCmp = REQ_ICONS[index] ?? Server;
+                return (
+                  <div key={req.label} className="p-5">
+                    <IconCmp className="h-4 w-4" style={{ color: req.accent }} />
+                    <div className="mt-3 text-[11px] uppercase tracking-[0.14em] text-slate-500">
+                      {req.label}
+                    </div>
+                    <div className="mt-1 text-lg font-semibold text-white">{req.value}</div>
+                    <div className="mt-1 text-[11.5px] leading-snug text-slate-500">{req.hint}</div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {requirements.map((req, index) => (
-              <motion.div
-                key={index}
-                className="flex items-center gap-3 text-sm text-[#8888aa] py-2.5 px-3.5 rounded-lg bg-white/[0.02] border border-white/[0.04] hover:bg-white/[0.04] hover:border-white/[0.08] transition-all duration-300 group"
-                whileHover={{ x: 4 }}
-                data-aos="fade-up"
-                data-aos-delay={`${400 + index * 50}`}
-              >
-                <req.icon className="w-4 h-4 text-[#00ffff]/60 flex-shrink-0 group-hover:text-[#00ffff] transition-colors" />
-                <span>{req.text}</span>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

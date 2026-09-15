@@ -219,3 +219,36 @@ Sederhanakan installer (hapus fitur Blueprint/Theme/Addon, pertahankan Panel + W
 - `src/app/page.tsx` — hapus BlueprintAddons & Sources
 - `src/components/landing/Navbar.tsx` — hapus link Blueprint & Sumber, fix gradient
 - `src/components/landing/Hero.tsx` — fix gradient, sederhanakan wizard script
+
+---
+## Task ID: 7 - full-stack-developer
+### Work Task
+Buat web lebih lightweight, rombak layout & tampilan, dan perbarui installer.
+
+### Work Summary
+
+**1. Pemangkasan dependency (lightweight)**
+- Runtime dependency: **68 → 4** (`next`, `react`, `react-dom`, `lucide-react`)
+- `npm install` dari 1000+ paket (bun.lock lama) menjadi **364 paket**
+- Dibuang: framer-motion, aos + @types/aos, seluruh @radix-ui/*, @mdxeditor, recharts, @tanstack/*, prisma + @prisma/client, next-auth, zustand, zod, react-hook-form, cmdk, sonner, vaul, embla, react-day-picker, react-table, react-syntax-highlighter, date-fns, uuid, dnd-kit, tailwind-merge, clsx, cva, tw-animate-css, tailwindcss-animate, sharp, z-ai-web-dev-sdk, next-intl, next-themes, reactuses, input-otp, react-resizable-panels, react-markdown, @hookform/resolvers
+- 48 komponen shadcn/ui yang tidak terpakai, `src/hooks/*`, `src/lib/db.ts`, `prisma/`, `db/`, `src/app/api/`, `tailwind.config.ts` (legacy v3), `src/lib/utils.ts` dihapus
+- Font Google (Geist/Geist Mono) diganti font stack sistem → 0 request font
+- `logo.png` (72 KB) + `favicon.ico` (56 KB) diganti SVG inline + `/icon.svg` → 0 request gambar
+- `next.config.ts`: `optimizePackageImports: ["lucide-react"]`, security header, `/installer/*` tetap dilayani `text/plain`
+- Hasil terukur: halaman sepenuhnya **static prerender** (4/4 route), JS halaman **182 KB gzip** (kode aplikasi hanya ±10 KB), CSS **51 KB / 10,2 KB gzip** dalam satu file, HTML **36 KB gzip**
+
+**2. Rombak layout & tampilan**
+- Design system baru di `globals.css` (Tailwind v4 `@theme`, token warna ink/cyan/emerald/violet/pink, `@layer components`: `.shell`, `.card`, `.btn`, `.chip`, `.term`, `.eyebrow`, `[data-reveal]`)
+- Animasi tanpa library: IntersectionObserver tunggal (`Reveal.tsx`) + keyframes CSS (drift, float-slow, pulse-ring, caret) dan dukungan `prefers-reduced-motion`
+- `src/lib/site.ts` sebagai satu sumber konten (fitur, OS, teknologi, FAQ, CLI, mode instalasi, tim)
+- Komponen baru: Background (aurora CSS), Navbar (progres baca + section aktif + menu mobile), Hero + `TerminalDemo` (animasi instalasi nyata), Features, InstallGuide (tab mode instalasi + flag), CliSection (`arkan doctor` + daftar perintah), HowItWorks, TechStack + sumber, Compatibility + perbandingan manual vs installer, Faq (`<details>` native, 0 JS), About, Footer
+- Metadata baru + `sitemap.ts` + skip-link aksesibilitas + fallback `<noscript>`
+
+**3. Installer diperbarui ke v2.0.0** (`public/installer/pterodactyl.sh`, 1992 baris)
+- Perbaikan bug versi lama: repo Docker (dulu selalu `debian`, kini `ubuntu|debian|centos`), HSTS, MariaDB 11.4 resmi, PHP-FPM tuning, verifikasi DNS, service pteroq/wings
+- CLI argumen baru: `--panel --wings --both --fqdn --email --timezone --db-* --admin-* --ssl/--no-ssl --firewall/--no-firewall --dbhost --with-node --yes --dry-run --color --uninstall`
+- Mode unattended penuh (tanpa satu pun prompt) + `--dry-run` untuk melihat rencana tanpa mengubah sistem
+- CLI manajemen `arkan` dipasang ke `/usr/local/bin/arkan`: `status`, `doctor`, `info`, `update panel|wings`, `backup [--keep]`, `restore`, `logs`, `restart`, `ssl renew`, `uninstall`
+- Backup otomatis sebelum update ke `/var/backups/arkanprojects`, logrotate di `/etc/logrotate.d/arkanprojects`, kredensial tersimpan aman di `/etc/arkanprojects/arkan.conf` (mode 600)
+- Indikator progres spinner, deteksi RAM/disk/virtualisasi + tawaran swap otomatis, verifikasi DNS sebelum Certbot
+- Diverifikasi: `bash -n` bersih, `--help`/`--version`, dry-run panel+wings, wings-only, dan CLI `arkan` (help/info/status/version) dites dengan konfigurasi tiruan
